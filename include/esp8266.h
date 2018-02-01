@@ -1,6 +1,6 @@
 // Combined include file for esp8266
-#ifndef _ESP8266_H_
-#define _ESP8266_H_
+#ifndef _ESP8266_H__
+#define _ESP8266_H__
 
 #undef MEMLEAK_DEBUG
 #define USE_OPTIMIZE_PRINTF
