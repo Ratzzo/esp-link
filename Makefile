@@ -52,7 +52,7 @@ ESP_HOSTNAME  ?= esp-link
 # Base directory for the compiler. Needs a / at the end.
 # Typically you'll install https://github.com/pfalcon/esp-open-sdk
 # IMPORTANT: use esp-open-sdk `make STANDALONE=n`: the SDK bundled with esp-open-sdk will *not* work!
-XTENSA_TOOLS_ROOT ?= $(abspath ../esp-open-sdk/xtensa-lx106-elf/bin)/
+XTENSA_TOOLS_ROOT ?= $(abspath ../xtensa-lx106-elf/bin)/
 
 # Firmware version 
 # WARNING: if you change this expect to make code adjustments elsewhere, don't expect
@@ -75,14 +75,14 @@ SDK_BASE := $(abspath $(SDK_BASE))
 $(info SDK     is $(SDK_BASE))
 
 # Path to bootloader file
-BOOTFILE	?= $(SDK_BASE/bin/boot_v1.6.bin)
+BOOTFILE	?= $(SDK_BASE)/../ESP8266_NONOS_SDK_V2.0.0_16_08_10/bin/boot_v1.6.bin
 
 # Esptool.py path and port, only used for 1-time serial flashing
 # Typically you'll use https://github.com/themadinventor/esptool
 # Windows users use the com port i.e: ESPPORT ?= com3
 ESPTOOL		?= $(abspath ../esp-open-sdk/esptool/esptool.py)
 ESPPORT		?= /dev/ttyUSB0
-ESPBAUD		?= 230400
+ESPBAUD		?= 921600
 
 # --------------- chipset configuration   ---------------
 
@@ -126,7 +126,7 @@ GZIP_COMPRESSION ?= yes
 # https://code.google.com/p/htmlcompressor/#For_Non-Java_Projects
 # http://yui.github.io/yuicompressor/
 # enabled by default.
-COMPRESS_W_HTMLCOMPRESSOR ?= yes
+COMPRESS_W_HTMLCOMPRESSOR ?= no
 HTML_COMPRESSOR ?= htmlcompressor-1.5.3.jar
 YUI_COMPRESSOR ?= yuicompressor-2.4.8.jar
 
@@ -352,7 +352,7 @@ $1/%.o: %.c
 	$(Q)$(CC) $(INCDIR) $(MODULE_INCDIR) $(EXTRA_INCDIR) $(SDK_INCDIR) $(CFLAGS)  -c $$< -o $$@
 endef
 
-.PHONY: all checkdirs clean webpages.espfs wiflash
+.PHONY: all checkdirs clean webpages.espfs wiflash $(FW_BASE)
 
 all: checkdirs $(FW_BASE)/user1.bin $(FW_BASE)/user2.bin
 
@@ -373,23 +373,23 @@ $(FW_BASE):
 	$(Q) mkdir -p $@
 
 $(FW_BASE)/user1.bin: $(USER1_OUT) $(FW_BASE)
-	$(Q) $(OBJCP) --only-section .text -O binary $(USER1_OUT) eagle.app.v6.text.bin
-	$(Q) $(OBJCP) --only-section .data -O binary $(USER1_OUT) eagle.app.v6.data.bin
-	$(Q) $(OBJCP) --only-section .rodata -O binary $(USER1_OUT) eagle.app.v6.rodata.bin
+	$(Q) $(OBJCP) --only-section .text -O binary       $(USER1_OUT) eagle.app.v6.text.bin
+	$(Q) $(OBJCP) --only-section .data -O binary       $(USER1_OUT) eagle.app.v6.data.bin
+	$(Q) $(OBJCP) --only-section .rodata -O binary     $(USER1_OUT) eagle.app.v6.rodata.bin
 	$(Q) $(OBJCP) --only-section .irom0.text -O binary $(USER1_OUT) eagle.app.v6.irom0text.bin
 	$(Q) $(ELF_SIZE) -A $(USER1_OUT) |grep -v " 0$$" |grep .
-	$(Q) COMPILE=gcc PATH=$(XTENSA_TOOLS_ROOT):$(PATH) python $(APPGEN_TOOL) $(USER1_OUT) 2 $(ESP_FLASH_MODE) $(ESP_FLASH_FREQ_DIV) $(ESP_SPI_SIZE) 0 >/dev/null
+	$(Q) COMPILE=gcc PATH=$(XTENSA_TOOLS_ROOT):$(PATH) python2 $(APPGEN_TOOL) $(USER1_OUT) 2 $(ESP_FLASH_MODE) $(ESP_FLASH_FREQ_DIV) $(ESP_SPI_SIZE) 0 >/dev/null
 	$(Q) rm -f eagle.app.v6.*.bin
 	$(Q) mv eagle.app.flash.bin $@
 	@echo "    user1.bin uses $$(stat -c '%s' $@) bytes of" $(ESP_FLASH_MAX) "available"
 	$(Q) if [ $$(stat -c '%s' $@) -gt $$(( $(ESP_FLASH_MAX) )) ]; then echo "$@ too big!"; false; fi
 
 $(FW_BASE)/user2.bin: $(USER2_OUT) $(FW_BASE)
-	$(Q) $(OBJCP) --only-section .text -O binary $(USER2_OUT) eagle.app.v6.text.bin
-	$(Q) $(OBJCP) --only-section .data -O binary $(USER2_OUT) eagle.app.v6.data.bin
-	$(Q) $(OBJCP) --only-section .rodata -O binary $(USER2_OUT) eagle.app.v6.rodata.bin
+	$(Q) $(OBJCP) --only-section .text -O binary       $(USER2_OUT) eagle.app.v6.text.bin
+	$(Q) $(OBJCP) --only-section .data -O binary       $(USER2_OUT) eagle.app.v6.data.bin
+	$(Q) $(OBJCP) --only-section .rodata -O binary     $(USER2_OUT) eagle.app.v6.rodata.bin
 	$(Q) $(OBJCP) --only-section .irom0.text -O binary $(USER2_OUT) eagle.app.v6.irom0text.bin
-	$(Q) COMPILE=gcc PATH=$(XTENSA_TOOLS_ROOT):$(PATH) python $(APPGEN_TOOL) $(USER2_OUT) 2 $(ESP_FLASH_MODE) $(ESP_FLASH_FREQ_DIV) $(ESP_SPI_SIZE) 1 >/dev/null
+	$(Q) COMPILE=gcc PATH=$(XTENSA_TOOLS_ROOT):$(PATH) python2 $(APPGEN_TOOL) $(USER2_OUT) 2 $(ESP_FLASH_MODE) $(ESP_FLASH_FREQ_DIV) $(ESP_SPI_SIZE) 1 >/dev/null
 	$(Q) rm -f eagle.app.v6.*.bin
 	$(Q) mv eagle.app.flash.bin $@
 	$(Q) if [ $$(stat -c '%s' $@) -gt $$(( $(ESP_FLASH_MAX) )) ]; then echo "$@ too big!"; false; fi
@@ -411,7 +411,7 @@ baseflash: all
 
 flash: all
 	$(Q) $(ESPTOOL) --port $(ESPPORT) --baud $(ESPBAUD) write_flash -fs $(ET_FS) -ff $(ET_FF) \
-	  0x00000 "$(SDK_BASE)/bin/boot_v1.5.bin" 0x01000 $(FW_BASE)/user1.bin \
+	  0x00000 "$(BOOTFILE)" 0x01000 $(FW_BASE)/user1.bin \
 	  $(ET_BLANK) $(SDK_BASE)/bin/blank.bin
 
 tools/$(HTML_COMPRESSOR):
@@ -471,11 +471,11 @@ endif
 
 # edit the loader script to add the espfs section to the end of irom with a 4 byte alignment.
 # we also adjust the sizes of the segments 'cause we need more irom0
-build/eagle.esphttpd1.v6.ld: $(SDK_LDDIR)/eagle.app.v6.new.1024.app1.ld
+$(LD_SCRIPT1): $(SDK_LDDIR)/eagle.app.v6.new.1024.app1.ld
 	$(Q) sed -e '/\.irom\.text/{' -e 'a . = ALIGN (4);' -e 'a *(.espfs)' -e '}'  \
 		-e '/^  irom0_0_seg/ s/6B000/7C000/' \
 		$(SDK_LDDIR)/eagle.app.v6.new.1024.app1.ld >$@
-build/eagle.esphttpd2.v6.ld: $(SDK_LDDIR)/eagle.app.v6.new.1024.app2.ld
+$(LD_SCRIPT2): $(SDK_LDDIR)/eagle.app.v6.new.1024.app2.ld
 	$(Q) sed -e '/\.irom\.text/{' -e 'a . = ALIGN (4);' -e 'a *(.espfs)' -e '}'  \
 		-e '/^  irom0_0_seg/ s/6B000/7C000/' \
 		$(SDK_LDDIR)/eagle.app.v6.new.1024.app2.ld >$@
@@ -488,7 +488,7 @@ release: all
 	$(Q) egrep -a 'esp-link [a-z0-9.]+ - 201' $(FW_BASE)/user1.bin | cut -b 1-80
 	$(Q) egrep -a 'esp-link [a-z0-9.]+ - 201' $(FW_BASE)/user2.bin | cut -b 1-80
 	$(Q) cp $(FW_BASE)/user1.bin $(FW_BASE)/user2.bin $(SDK_BASE)/bin/blank.bin \
-	       "$(SDK_BASE)/bin/boot_v1.7.bin" "$(SDK_BASE)/bin/esp_init_data_default.bin" \
+	       "$(BOOTFILE)" "$(SDK_BASE)/bin/esp_init_data_default.bin" \
 	       wiflash avrflash megaflash release/esp-link-$(VERSION)
 	$(Q) tar zcf esp-link-$(VERSION).tgz -C release esp-link-$(VERSION)
 	$(Q) echo "Release file: esp-link-$(VERSION).tgz"
@@ -514,7 +514,7 @@ depend:
 
 # Rebuild version at least at every Makefile change
 
-${BUILD_BASE}/esp-link/main.o: Makefile
+#${BUILD_BASE}/esp-link/main.o: Makefile
 
 # DO NOT DELETE
 
