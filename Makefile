@@ -126,7 +126,7 @@ GZIP_COMPRESSION ?= yes
 # https://code.google.com/p/htmlcompressor/#For_Non-Java_Projects
 # http://yui.github.io/yuicompressor/
 # enabled by default.
-COMPRESS_W_HTMLCOMPRESSOR ?= no
+COMPRESS_W_HTMLCOMPRESSOR ?= yes
 HTML_COMPRESSOR ?= htmlcompressor-1.5.3.jar
 YUI_COMPRESSOR ?= yuicompressor-2.4.8.jar
 
@@ -354,7 +354,7 @@ endef
 
 .PHONY: all checkdirs clean webpages.espfs wiflash $(FW_BASE)
 
-all: checkdirs $(FW_BASE)/user1.bin $(FW_BASE)/user2.bin
+all: checkdirs $(FW_BASE)/user2.bin
 
 $(USER1_OUT): $(APP_AR) $(LD_SCRIPT1)
 	$(vecho) "LD $@"
@@ -384,7 +384,7 @@ $(FW_BASE)/user1.bin: $(USER1_OUT) $(FW_BASE)
 	@echo "    user1.bin uses $$(stat -c '%s' $@) bytes of" $(ESP_FLASH_MAX) "available"
 	$(Q) if [ $$(stat -c '%s' $@) -gt $$(( $(ESP_FLASH_MAX) )) ]; then echo "$@ too big!"; false; fi
 
-$(FW_BASE)/user2.bin: $(USER2_OUT) $(FW_BASE)
+$(FW_BASE)/user2.bin: $(FW_BASE)/user1.bin $(USER2_OUT) $(FW_BASE)
 	$(Q) $(OBJCP) --only-section .text -O binary       $(USER2_OUT) eagle.app.v6.text.bin
 	$(Q) $(OBJCP) --only-section .data -O binary       $(USER2_OUT) eagle.app.v6.data.bin
 	$(Q) $(OBJCP) --only-section .rodata -O binary     $(USER2_OUT) eagle.app.v6.rodata.bin
