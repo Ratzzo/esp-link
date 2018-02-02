@@ -103,7 +103,7 @@ LED_SERIAL_PIN      ?= 14
 # --------------- esp-link modules config options ---------------
 
 # Optional Modules: mqtt rest socket web-server syslog
-MODULES ?= mqtt rest socket web-server syslog
+MODULES ?= web-server #mqtt rest socket web-server syslog
 
 # --------------- esphttpd config options ---------------
 
@@ -126,7 +126,7 @@ GZIP_COMPRESSION ?= yes
 # https://code.google.com/p/htmlcompressor/#For_Non-Java_Projects
 # http://yui.github.io/yuicompressor/
 # enabled by default.
-COMPRESS_W_HTMLCOMPRESSOR ?= yes
+COMPRESS_W_HTMLCOMPRESSOR ?= no
 HTML_COMPRESSOR ?= htmlcompressor-1.5.3.jar
 YUI_COMPRESSOR ?= yuicompressor-2.4.8.jar
 
@@ -408,6 +408,9 @@ wiflash: all
 
 baseflash: all
 	$(Q) $(ESPTOOL) --port $(ESPPORT) --baud $(ESPBAUD) write_flash 0x01000 $(FW_BASE)/user1.bin
+	
+rfcal:
+	$(Q) $(ESPTOOL) --port $(ESPPORT) --baud $(ESPBAUD) write_flash 0x3fc000 bin/esp_init_data_default.bin
 
 flash: all
 	$(Q) $(ESPTOOL) --port $(ESPPORT) --baud $(ESPBAUD) write_flash -fs $(ET_FS) -ff $(ET_FF) \
