@@ -1,0 +1,15 @@
+cmd
+esp-link
+espfs
+espfs/mkespfsimage/mman-win32
+httpd
+include
+mqtt
+rest
+serial
+socket
+syslog
+web-server
+../sdk/include
+../xtensa-lx106-elf/sysroot/usr/include
+
