@@ -14,6 +14,7 @@
 
 # optional local configuration file
 -include local.conf
+include environment.mk
 
 # The Wifi station configuration can be hard-coded here, which makes esp-link come up in STA+AP
 # mode trying to connect to the specified AP *only* if the flash wireless settings are empty!
@@ -171,7 +172,7 @@ ET_BLANK            ?= 0x1FE000 # where to flash blank.bin to erase wireless set
 else
 # Winbond 25Q32 4MB flash, typ for esp-12
 # Here we're using two partitions of approx 0.5MB because that's what's easily available in terms
-# of linker scripts in the SDK. Ideally we'd use two partitions of approx 1MB, the remaining 2MB
+# of linker scripts in the SDK. Id/eally we'd use two partitions of approx 1MB, the remaining 2MB
 # cannot be used for code (esp8266 limitation).
 ESP_SPI_SIZE        ?= 4       # 6->4MB (1MB+1MB) or 4->4MB (512KB+512KB)
 ESP_FLASH_MODE      ?= 0       # 0->QIO, 2->DIO
@@ -354,7 +355,9 @@ endef
 
 .PHONY: all checkdirs clean webpages.espfs wiflash $(FW_BASE)
 
+#stuff in "all" gets automatically parallelized.
 all: checkdirs $(FW_BASE)/user2.bin
+
 
 $(USER1_OUT): $(APP_AR) $(LD_SCRIPT1)
 	$(vecho) "LD $@"
@@ -384,7 +387,7 @@ $(FW_BASE)/user1.bin: $(USER1_OUT) $(FW_BASE)
 	@echo "    user1.bin uses $$(stat -c '%s' $@) bytes of" $(ESP_FLASH_MAX) "available"
 	$(Q) if [ $$(stat -c '%s' $@) -gt $$(( $(ESP_FLASH_MAX) )) ]; then echo "$@ too big!"; false; fi
 
-$(FW_BASE)/user2.bin: $(FW_BASE)/user1.bin $(USER2_OUT) $(FW_BASE)
+$(FW_BASE)/user2.bin: $(FW_BASE)/user1.bin $(USER2_OUT) $(FW_BASE) 
 	$(Q) $(OBJCP) --only-section .text -O binary       $(USER2_OUT) eagle.app.v6.text.bin
 	$(Q) $(OBJCP) --only-section .data -O binary       $(USER2_OUT) eagle.app.v6.data.bin
 	$(Q) $(OBJCP) --only-section .rodata -O binary     $(USER2_OUT) eagle.app.v6.rodata.bin
@@ -411,6 +414,13 @@ baseflash: all
 	
 rfcal:
 	$(Q) $(ESPTOOL) --port $(ESPPORT) --baud $(ESPBAUD) write_flash 0x3fc000 bin/esp_init_data_default.bin
+	
+dumpconfig:
+	$(Q) $(ESPTOOL) --port $(ESPPORT) --baud $(ESPBAUD) read_flash 0x3fc000 16384 dump.bin
+	
+restoreconfig:
+	$(Q) $(ESPTOOL) --port $(ESPPORT) --baud $(ESPBAUD) write_flash 0x3fc000 dump.bin
+
 
 flash: all
 	$(Q) $(ESPTOOL) --port $(ESPPORT) --baud $(ESPBAUD) write_flash -fs $(ET_FS) -ff $(ET_FF) \
@@ -462,10 +472,11 @@ ifeq (,$(findstring mqtt,$(MODULES)))
 	$(Q) rm -rf html_compressed/mqtt.html
 	$(Q) rm -rf html_compressed/mqtt.js
 endif
-	$(Q) for file in `find html_compressed -type f -name "*.htm*"`; do \
-	    cat html_compressed/head- $$file >$${file}-; \
-	    mv $$file- $$file; \
-	  done
+	#cats head- into all htm* files
+#	$(Q) for file in `find html_compressed -type f -name "*.htm*"`; do \
+#	    cat html_compressed/head- $$file >$${file}-; \
+#	    mv $$file- $$file; \
+#	  done
 	$(Q) rm html_compressed/head-
 	$(Q) cd html_compressed; find . \! -name \*- | ../espfs/mkespfsimage/mkespfsimage > ../build/espfs.img; cd ..;
 	$(Q) ls -sl build/espfs.img
