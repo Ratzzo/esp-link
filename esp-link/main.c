@@ -145,7 +145,7 @@ user_rf_pre_init(void) {
 /* user_rf_cal_sector_set is a required function that is called by the SDK to get a flash
  * sector number where it can store RF calibration data. This was introduced with SDK 1.5.4.1
  * and is necessary because Espressif ran out of pre-reserved flash sectors. Ooops...  */
-uint32 ICACHE_FLASH_ATTR
+/*uint32 ICACHE_FLASH_ATTR
 user_rf_cal_sector_set(void) {
   uint32_t sect = 0;
   switch (system_get_flash_size_map()) {
@@ -156,7 +156,7 @@ user_rf_cal_sector_set(void) {
     sect = 128; // 0x80000
   }
   return sect;
-}
+} */
 
 // Main routine to initialize esp-link.
 void ICACHE_FLASH_ATTR

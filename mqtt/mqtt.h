@@ -29,7 +29,7 @@
 */
 #ifndef MQTT_H_
 #define MQTT_H_
-
+#include <esp8266.h>
 #include "mqtt_msg.h"
 #include "pktbuf.h"
 
