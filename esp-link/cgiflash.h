@@ -3,10 +3,10 @@
 
 #include "httpd.h"
 
-int cgiReadFlash(HttpdConnData *connData);
-int cgiGetFirmwareNext(HttpdConnData *connData);
-int cgiUploadFirmware(HttpdConnData *connData);
-int cgiRebootFirmware(HttpdConnData *connData);
-int cgiReset(HttpdConnData *connData);
+int ICACHE_FLASH_ATTR cgiReadFlash(HttpdConnData *connData);
+int ICACHE_FLASH_ATTR cgiGetFirmwareNext(HttpdConnData *connData);
+int ICACHE_FLASH_ATTR cgiUploadFirmware(HttpdConnData *connData);
+int ICACHE_FLASH_ATTR cgiRebootFirmware(HttpdConnData *connData);
+int ICACHE_FLASH_ATTR cgiReset(HttpdConnData *connData);
 
 #endif

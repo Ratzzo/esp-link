@@ -16,9 +16,9 @@
 #define MAXUSRTASKS	 8
 
 #ifdef USRTASK_DBG
-#define DBG_USRTASK(format, ...) os_printf(format, ## __VA_ARGS__)
+#define DBG_USRTASK(format, ...) os_printf(format, __VA_ARGS__)
 #else
-#define DBG_USRTASK(format, ...) do { } while(0)
+#define DBG_USRTASK(format, ...)
 #endif
 
 LOCAL os_event_t *_task_queue   = NULL;		// system_os_task queue

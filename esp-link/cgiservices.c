@@ -4,7 +4,7 @@
 #include "cgi.h"
 #include "config.h"
 #include "sntp.h"
-#include "cgimqtt.h"
+//#include "cgimqtt.h"
 #ifdef SYSLOG
 #include "syslog.h"
 #endif
@@ -86,7 +86,7 @@ int ICACHE_FLASH_ATTR cgiSystemInfo(HttpdConnData *connData) {
     part_id ? "user2.bin" : "user1.bin",
     flashConfig.slip_enable ? "enabled" : "disabled",
     flashConfig.mqtt_enable ? "enabled" : "disabled",
-    mqttState(),
+	"no"/*mqttState()*/,
     flashConfig.baud_rate,
     flashConfig.sys_descr
     );

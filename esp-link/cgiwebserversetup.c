@@ -3,7 +3,7 @@
 #include <esp8266.h>
 #include <osapi.h>
 #include "cgi.h"
-#include "cgioptiboot.h"
+//#include "cgioptiboot.h"
 #include "multipart.h"
 #include "espfsformat.h"
 #include "config.h"

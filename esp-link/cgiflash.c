@@ -18,9 +18,9 @@ Some flash handling cgi routines. Used for reading the existing flash and updati
 #include "cgiflash.h"
 
 #ifdef CGIFLASH_DBG
-#define DBG(format, ...) do { os_printf(format, ## __VA_ARGS__); } while(0)
+#define DBG(format, ...) os_printf(format, __VA_ARGS__)
 #else
-#define DBG(format, ...) do { } while(0)
+#define DBG(format, ...)
 #endif
 
 // Check that the header of the firmware blob looks like actual firmware...

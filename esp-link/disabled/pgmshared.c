@@ -57,7 +57,7 @@ static bool ICACHE_FLASH_ATTR verifyChecksum(char *buf, short len) {
 // This calls one or the other
 static bool ICACHE_FLASH_ATTR programPage() {
   if (optibootData->mega)
-    return megaProgramPage();
+	return megaProgramPage();
   return optibootProgramPage();
 }
 
