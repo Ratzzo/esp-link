@@ -37,15 +37,15 @@
 #define UART_RXFIFO_FULL_INT_ST (BIT(0))
 
 #define UART_INT_ENA( i )                       (REG_UART_BASE( i ) + 0xC)
-#define UART_RXFIFO_TOUT_INT_ENA (BIT(8))
-#define UART_BRK_DET_INT_ENA (BIT(7))
-#define UART_CTS_CHG_INT_ENA (BIT(6))
-#define UART_DSR_CHG_INT_ENA (BIT(5))
-#define UART_RXFIFO_OVF_INT_ENA (BIT(4))
-#define UART_FRM_ERR_INT_ENA (BIT(3))
-#define UART_PARITY_ERR_INT_ENA (BIT(2))
-#define UART_TXFIFO_EMPTY_INT_ENA (BIT(1))
-#define UART_RXFIFO_FULL_INT_ENA (BIT(0))
+#define UART_RXFIFO_TOUT_INT_ENA (BIT(8))			//receive timeout
+#define UART_BRK_DET_INT_ENA (BIT(7))				//
+#define UART_CTS_CHG_INT_ENA (BIT(6))				//
+#define UART_DSR_CHG_INT_ENA (BIT(5))				//
+#define UART_RXFIFO_OVF_INT_ENA (BIT(4))			//
+#define UART_FRM_ERR_INT_ENA (BIT(3))				//
+#define UART_PARITY_ERR_INT_ENA (BIT(2))			//
+#define UART_TXFIFO_EMPTY_INT_ENA (BIT(1))			//transmit fifo empty interrupt
+#define UART_RXFIFO_FULL_INT_ENA (BIT(0))			//
 
 #define UART_INT_CLR( i )                       (REG_UART_BASE( i ) + 0x10)
 #define UART_RXFIFO_TOUT_INT_CLR (BIT(8))
@@ -177,7 +177,7 @@ typedef enum {
     BIT_RATE_230400 = 230400,
     BIT_RATE_460800 = 460800,
     BIT_RATE_921600 = 921600
-} UartBautRate;
+} UartBaudRate;
 
 typedef enum {
     NONE_CTRL,
@@ -214,7 +214,7 @@ typedef enum {
 } RcvMsgState;
 
 typedef struct {
-    UartBautRate 	     baut_rate;
+	UartBaudRate 	     baud_rate;
     UartBitsNum4Char  data_bits;
     UartExistParity      exist_parity;
     UartParityMode 	    parity;

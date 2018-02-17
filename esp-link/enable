@@ -1,4 +1,0 @@
-#!/bin/sh
-#the reverse of disable
-
-mv disabled/$1* .

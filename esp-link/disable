@@ -1,6 +1,0 @@
-#!/bin/sh
-#disable a feature, more like moving the source files to disabled/
-#you still have to comment wherever they are referenced.
-#terrible shit, I know.
-
-mv $1* disabled/
