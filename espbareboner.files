@@ -1,0 +1,16 @@
+Makefile
+deps/appwrapper.c
+deps/task.c
+deps/uart.c
+environment.mk
+include/c_types.h
+include/esp8266.h
+include/espmissingincludes.h
+include/internals.h
+include/task.h
+include/uart.h
+include/uart_hw.h
+include/user_config.h
+src/main.c
+tools/fwinfo.c
+tools/generateprovider.c
