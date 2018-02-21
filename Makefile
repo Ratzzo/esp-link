@@ -153,8 +153,8 @@ LIBS += lwip_536
 
 # compiler flags using during compilation of source files
 CFLAGS	+= -Os -ggdb -std=c99 -Wpointer-arith -Wundef -Wall -Wl,-EL -fno-inline-functions \
-	-nostdlib -mlongcalls -mtext-section-literals -ffunction-sections -fdata-sections \
-	-D__ets__ -DICACHE_FLASH -Wno-address -DFIRMWARE_SIZE=$(ESP_FLASH_MAX) \
+	-nostdlib -mlongcalls -mtarget-align -mtext-section-literals -ffunction-sections -fdata-sections \
+	-D__ESP8266__ -D__ets__ -DICACHE_FLASH -Wno-address -DFIRMWARE_SIZE=$(ESP_FLASH_MAX) \
 	-DMCU_RESET_PIN=$(MCU_RESET_PIN) -DMCU_ISP_PIN=$(MCU_ISP_PIN) \
 	-DLED_CONN_PIN=$(LED_CONN_PIN) -DLED_SERIAL_PIN=$(LED_SERIAL_PIN) \
 	-DAPP_USER2_BASE_VADDR='$(APP_USER2_BASE_VADDR)' -DVERSION="esp-link $(VERSION)"
@@ -162,7 +162,7 @@ CFLAGS	+= -Os -ggdb -std=c99 -Wpointer-arith -Wundef -Wall -Wl,-EL -fno-inline-f
 
 # linker flags used to generate the main object file
 LDFLAGS1		= -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static  
-LDFLAGS2		= -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,--gc-sections
+LDFLAGS2		= -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static
 #-Wl,--gc-sections
 
 # linker script used for the above linker step
@@ -234,7 +234,7 @@ $1/%.o: %.c
 	$(Q)$(CC) $(INCDIR) $(MODULE_INCDIR) $(EXTRA_INCDIR) $(SDK_INCDIR) $(CFLAGS)  -c $$< -o $$@
 endef
 
-.PHONY: checkdirs clean 
+.PHONY: checkdirs clean
 
 #stuff in "all" gets automatically parallelized.
 all: $(CTOOLS) checkdirs $(FW_BASE)/user2.bin
@@ -256,7 +256,7 @@ $(FW_BASE):
 	echo $(SRC1_DIR)
 
 	
-$(FW_BASE)/user1.bin: checkdirs $(USER1_OUT) 
+$(FW_BASE)/user1.bin: $(USER1_OUT)
 	$(Q) $(OBJCP) --only-section .text -O binary       $(USER1_OUT) eagle.app.v6.text.bin
 	$(Q) $(OBJCP) --only-section .data -O binary       $(USER1_OUT) eagle.app.v6.data.bin
 	$(Q) $(OBJCP) --only-section .rodata -O binary     $(USER1_OUT) eagle.app.v6.rodata.bin
@@ -268,10 +268,11 @@ $(FW_BASE)/user1.bin: checkdirs $(USER1_OUT)
 	@echo "    user1.bin uses $$(stat -c '%s' $@) bytes of" $(ESP_FLASH_MAX) "available"
 	$(Q) if [ $$(stat -c '%s' $@) -gt $$(( $(ESP_FLASH_MAX) )) ]; then echo "$@ too big!"; false; fi
 	$(Q) touch $@
+	$(Q) $(FWINFO) $@
 	
 	
 #we'll allocate the main application on usr2
-$(FW_BASE)/user2.bin: $(USER2_OUT) $(FW_BASE)/user1.bin
+$(FW_BASE)/user2.bin: $(BUILD_DIR) $(USER2_OUT) $(FW_BASE)/user1.bin
 	$(Q) $(ELF_SIZE) -A $(USER2_OUT) |grep -v " 0$$" |grep .
 	$(ESPTOOL) elf2image --version=2 $(USER2_OUT)
 	$(Q) cp $(BUILD_BASE)/httpd.user2*.bin $@
@@ -279,6 +280,7 @@ $(FW_BASE)/user2.bin: $(USER2_OUT) $(FW_BASE)/user1.bin
 	$(Q) rm -f eagle.app.v6.*.bin
 	$(Q) if [ $$(stat -c '%s' $@) -gt $$(( $(ESP_FLASH_MAX) )) ]; then echo "$@ too big!"; false; fi
 	$(Q) touch $(FW_BASE)/user2.bin
+	$(Q) $(FWINFO) $@
 
 checkdirs: $(BUILD_DIR)
 
@@ -301,16 +303,32 @@ dumpuser2:
 restoreconfig:
 	$(Q) $(ESPTOOL) --port $(ESPPORT) --baud $(ESPBAUD) write_flash 0x3fc000 dump.bin
 
-flash: $(FW_BASE)/user2.bin
+
+#flash main program only
+flash: $(FW_BASE)/user2.bin depflash
 	$(Q) $(ESPTOOL) --port $(ESPPORT) --baud $(ESPBAUD) write_flash -fs $(ET_FS) -ff $(ET_FF) \
 	$(APP_USER2_BASE_ADDR) $(FW_BASE)/user2.bin \
 	  $(ET_BLANK) $(SDK_BASE)/bin/blank.bin
+	$(Q) touch flash
 
 #flash all the dependencies
 depflash: $(FW_BASE)/user1.bin
 	$(Q) $(ESPTOOL) --port $(ESPPORT) --baud $(ESPBAUD) write_flash -fs $(ET_FS) -ff $(ET_FF) \
 	  0x00000 "$(BOOTFILE)" 0x01000 $(FW_BASE)/user1.bin \
 	  $(ET_BLANK) $(SDK_BASE)/bin/blank.bin
+	$(Q) touch depflash
+
+cleanuser2:
+	rm -rf $(OBJ2)
+
+cleanuser1:
+	rm -rf $(OBJ1)
+
+disasm1:
+	$(OBJDP) -d build/httpd.user1.out > user1.asm
+
+disasm2:
+	$(OBJDP) -d build/httpd.user2.out > user2.asm
 
 # edit the loader script to add the espfs section to the end of irom with a 4 byte alignment.
 # we also adjust the sizes of the segments 'cause we need more irom0
@@ -325,7 +343,7 @@ $(LD_SCRIPT1): $(SDK_LDDIR)/eagle.app.v6.new.1024.app1.ld $(CTOOLS)
 	
 $(LD_SCRIPT2): $(USER1_OUT) $(SDK_LDDIR)/eagle.app.v6.new.1024.app1.ld $(CTOOLS)
 	$(Q) sed -e '/\.irom\.text/{' -e 'a . = ALIGN (4);' -e 'a *(.espfs)' -e '}'  \
-		-e '/^  dram0_0_seg/ s/0x3FFE8000/0x3FFF2000/' \
+		-e '/^  dram0_0_seg/ s/0x3FFE8000/0x3FFF0000/' \
 		-e '/^  irom0_0_seg/ s/6B000/7C000/' \
 		-e '/^  irom0_0_seg/ s/0x40281010/$(APP_USER2_BASE_ADDR)+0x40200000+0x10/' \
 		-e '/^  iram1_0_seg/ s/8000/1000/' \
@@ -352,6 +370,8 @@ clean:
 	$(Q) rm -rf build
 	$(Q) rm -rf $(CTOOLS)
 	$(Q) rm -rf firmware/*
+	$(Q) rm -rf depflash
+	$(Q) rm -rf flash
 	
 $(foreach bdir,$(BUILD_DIR),$(eval $(call compile-objects,$(bdir))))
 #$(foreach bdir,$(BUILD_DIR),$(eval $(call compile-objects,$(bdir))))
