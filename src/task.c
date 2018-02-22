@@ -37,13 +37,12 @@ LOCAL void usr_event_handler(os_event_t *e)
   (usr_task_queue[e->sig])(e);
 }
 
-LOCAL void init_usr_task() {
+void init_usr_task() {
   if (_task_queue == NULL)
-    _task_queue = (os_event_t *)os_zalloc(sizeof(os_event_t) * _task_queueLen);
-
+	_task_queue = (os_event_t *)os_zalloc(sizeof(os_event_t) * _task_queueLen);
+ // uart0_muxed_printf(0, "shitzeritzen\n");
   if (usr_task_queue == NULL)
-    usr_task_queue = (os_task_t *)os_zalloc(sizeof(os_task_t) * MAXUSRTASKS);
-
+	usr_task_queue = (os_task_t *)os_zalloc(sizeof(os_task_t) * MAXUSRTASKS);
   system_os_task(usr_event_handler, _taskPrio, _task_queue, _task_queueLen);
 }
 
@@ -61,9 +60,13 @@ uint8_t register_usr_task (os_task_t event)
   if (_task_queue   == NULL || usr_task_queue == NULL)
     init_usr_task();
 
+  return 1;
+
+
   for (task = 0; task < MAXUSRTASKS; task++) {
-    if (usr_task_queue[task] == event)
+	if (usr_task_queue[task] == event){
       return task;		// task already registered - bail out...
+	}
   }
 
   for (task = 0; task < MAXUSRTASKS; task++) {

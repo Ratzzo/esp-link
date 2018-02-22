@@ -1,7 +1,5 @@
 Makefile
 deps/appwrapper.c
-deps/task.c
-deps/uart.c
 environment.mk
 include/c_types.h
 include/esp8266.h
@@ -12,5 +10,13 @@ include/uart.h
 include/uart_hw.h
 include/user_config.h
 src/main.c
+src/main.c
+src/proto.c
+src/proto.h
+src/serial.c
+src/serial.h
+src/task.c
+src/uart.c
+src/uart.c
 tools/fwinfo.c
 tools/generateprovider.c

@@ -1,1 +1,5 @@
 include
+.
+deps
+src
+../sdk/include

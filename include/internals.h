@@ -17,3 +17,4 @@ typedef struct segmentheader_t {
 } segmentheader_t;
 
 #pragma pack(pop)
+#pragma pack(4)

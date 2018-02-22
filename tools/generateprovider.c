@@ -32,7 +32,7 @@ int main(int argc, char *argv[]){
 		strstr(name, ".irom0") == 0 &&
 		strstr(name, "call_user_start") == 0 &&
 		strstr(name, "irom0") == 0)
-		printf("%s = 0x%x;\n", name, addr);
+		printf("PROVIDE(%s = 0x%x);\n", name, addr);
 		
 		//i++;
 	}

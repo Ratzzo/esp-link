@@ -1,0 +1,7 @@
+../lib
+../inc
+../lib/stm8s-sdcc/inc
+../lib/pcf
+../lib/twi
+../lib/millis
+../lib

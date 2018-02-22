@@ -152,7 +152,7 @@ LIBS += lwip_536
 #LIBS += crypto
 
 # compiler flags using during compilation of source files
-CFLAGS	+= -Os -ggdb -std=c99 -Wpointer-arith -Wundef -Wall -Wl,-EL -fno-inline-functions \
+CFLAGS	+= -Os  -ggdb -std=c99 -Wpointer-arith -Wundef -Wall -Wl,-EL -fno-inline-functions \
 	-nostdlib -mlongcalls -mtarget-align -mtext-section-literals -ffunction-sections -fdata-sections \
 	-D__ESP8266__ -D__ets__ -DICACHE_FLASH -Wno-address -DFIRMWARE_SIZE=$(ESP_FLASH_MAX) \
 	-DMCU_RESET_PIN=$(MCU_RESET_PIN) -DMCU_ISP_PIN=$(MCU_ISP_PIN) \
@@ -162,8 +162,7 @@ CFLAGS	+= -Os -ggdb -std=c99 -Wpointer-arith -Wundef -Wall -Wl,-EL -fno-inline-f
 
 # linker flags used to generate the main object file
 LDFLAGS1		= -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static  
-LDFLAGS2		= -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static
-#-Wl,--gc-sections
+LDFLAGS2		= -nostdlib -Wl,--no-check-sections -u call_user_start -Wl,--gc-sections
 
 # linker script used for the above linker step
 LD_SCRIPT 	:= build/eagle.esphttpd.v6.ld
@@ -320,9 +319,11 @@ depflash: $(FW_BASE)/user1.bin
 
 cleanuser2:
 	rm -rf $(OBJ2)
+	rm -rf $(LD_SCRIPT2)
 
 cleanuser1:
 	rm -rf $(OBJ1)
+	rm -rf $(LD_SCRIPT2)
 
 disasm1:
 	$(OBJDP) -d build/httpd.user1.out > user1.asm
@@ -335,20 +336,23 @@ disasm2:
 # for faster compilation we'll shove dependencies on usr1, and actual program on usr2 since I don't really care about OTA
 $(LD_SCRIPT1): $(SDK_LDDIR)/eagle.app.v6.new.1024.app1.ld $(CTOOLS)
 	$(Q) sed -e '/\.irom\.text/{' -e 'a . = ALIGN (4);' -e 'a *(.espfs)' -e '}'  \
-		-e '/^  irom0_0_seg/ s/6B000/7C000/' \
-		-e '/^  iram1_0_seg/ s/8000/7000/' \
+		-e '/^  irom0_0_seg/ s/0x6B000/0x7C000/' \
+		-e '/^  iram1_0_seg/ s/0x8000/0x7000/' \
+		-e '/^  dram0_0_seg/ s/0x14000/0xA000/' \
 		$(SDK_LDDIR)/eagle.app.v6.new.1024.app1.ld >$@
 #append a fixed usr_init to this
 #	$(Q) echo -e "PROVIDE (app_user_init = 0x40281010);" >> $@
 	
 $(LD_SCRIPT2): $(USER1_OUT) $(SDK_LDDIR)/eagle.app.v6.new.1024.app1.ld $(CTOOLS)
 	$(Q) sed -e '/\.irom\.text/{' -e 'a . = ALIGN (4);' -e 'a *(.espfs)' -e '}'  \
-		-e '/^  dram0_0_seg/ s/0x3FFE8000/0x3FFF0000/' \
-		-e '/^  irom0_0_seg/ s/6B000/7C000/' \
+		-e '/^  dram0_0_seg/ s/0x3FFE8000/0x3FFF2000/' \
+		-e '/^  dram0_0_seg/ s/0x14000/0xA000/' \
+		-e '/^  irom0_0_seg/ s/0x6B000/0x7C000/' \
 		-e '/^  irom0_0_seg/ s/0x40281010/$(APP_USER2_BASE_ADDR)+0x40200000+0x10/' \
-		-e '/^  iram1_0_seg/ s/8000/1000/' \
+		-e '/^  iram1_0_seg/ s/0x8000/0x1000/' \
 		-e '/^  iram1_0_seg/ s/0x40100000/0x40107000/' \
 		$(SDK_LDDIR)/eagle.app.v6.new.1024.app2.ld >$@
+#		$(SDK_LDDIR)/ass.ld >$@
 #	echo -e 'SECTIONS								'	>> $@
 #	echo -e '{									'	>> $@
 #	echo -e '/* placing my named section at given address: */			'	>> $@

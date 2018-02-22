@@ -1,0 +1,4 @@
+#!/bin/sh
+stm8-gdb $1 --eval-command='target remote localhost:3333' \
+-ex 'set confirm off' \
+-ex 'layout src' 

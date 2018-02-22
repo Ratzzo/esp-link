@@ -1,0 +1,24 @@
+#!/bin/sh
+
+rm -rf */*.o
+rm -rf */*/*.o
+rm -rf */*/*/*.o
+rm -rf */*/*/*/*.o
+
+rm -rf */out/*.asm
+rm -rf */out/*.rel
+rm -rf */out/*.rst
+rm -rf */out/*.bin
+rm -rf */out/*.lst
+rm -rf */out/*.sym
+rm -rf */out/*.ihx
+rm -rf */out/*.lk
+rm -rf */out/*.map
+rm -rf */out/*.cdb
+rm -rf */out/*.adb
+rm -rf */*.orig
+rm -rf */0
+rm -rf */*.bin
+rm -rf */*creator.user.*
+
+rm -rf *.log

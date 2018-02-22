@@ -1,0 +1,8 @@
+#!/bin/sh
+openocd -f interface/stlink-v2.cfg \
+-c 'set FLASHEND 0xCFFF' \
+-c 'set BLOCKSIZE 0x40' \
+-f target/stm8.cfg \
+-c 'adapter_khz 4000'  \
+-c init \
+-c 'reset halt' 

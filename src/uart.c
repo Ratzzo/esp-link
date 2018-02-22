@@ -317,6 +317,7 @@ uart0_config(uint8_t data_bits, uint8_t parity, uint8_t stop_bits) {
   WRITE_PERI_REG(UART_CONF0(0), conf0);
 }
 
+
 /******************************************************************************
  * FunctionName : uart_init
  * Description  : user interface for init uart
